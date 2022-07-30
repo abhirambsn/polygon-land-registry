@@ -9,3 +9,7 @@ dotenv: .env
 
 wallets:
   from_key: ${PRIVATE_KEY}
+  executor_addr: ${ADDR1}
+  seller_addr: ${ADDR2}
+  buyer_addr: ${ADDR3}
+  executor_addr_pub_key: ${ADDR1_PUB}
