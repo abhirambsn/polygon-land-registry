@@ -1,9 +1,13 @@
-import React from 'react'
+import React from "react";
+import IPFSUploadForm from "../forms/IPFSUploadForm";
 
 function LoginPage() {
   return (
-    <div>LoginPage</div>
-  )
+    <div>
+      {/* <IPFSUploadForm /> */}
+      LoginPage
+    </div>
+  );
 }
 
-export default LoginPage
+export default LoginPage;
