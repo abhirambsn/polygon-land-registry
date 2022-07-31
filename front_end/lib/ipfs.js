@@ -10,7 +10,6 @@ export const uploadToIPFS = async (
   plotNo
 ) => {
   const blob = new Blob([image?.data], { type: image?.type });
-  const imgFile = new File([blob], "0.jpeg");
   const imgCid = await client.storeBlob(blob);
   const metdataJson = {
     name,
