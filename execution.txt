@@ -1,0 +1,11 @@
+4 A/c
+1. Owner
+2. executor
+3. buyer
+4. seller
+
+1. Owner -> Deploy
+2. Owner -> executor Assign (pass executor address and name)
+3. Buyer, Seller -> Register User in Registry
+4. Executor -> Register Land (seller address, uri and price)
+5. Executor -> Execute Sale (buyer, seller address, token Id, sale type, sale price)

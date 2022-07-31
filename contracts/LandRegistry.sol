@@ -112,8 +112,11 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         return string(abi.encodePacked(a, "_", b));
     }
 
-    function registerLand(string memory _uri, uint256 _price) public {
-        address builder = msg.sender;
+    function registerLand(
+        string memory _uri,
+        address builder,
+        uint256 _price
+    ) public onlyExecutor {
         bytes memory signature = bytes(
             concat(string(abi.encodePacked(builder)), "BSIG")
         );
