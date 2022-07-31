@@ -8,8 +8,7 @@ compiler:
 dotenv: .env
 
 wallets:
-  from_key: ${PRIVATE_KEY}
-  executor_addr: ${ADDR1}
-  seller_addr: ${ADDR2}
-  buyer_addr: ${ADDR3}
-  executor_addr_pub_key: ${ADDR1_PUB}
+  executor_addr: ${EXECUTOR}
+  seller_addr: ${SELLER}
+  buyer_addr: ${BUYER}
+  owner_addr: ${OWNER}
