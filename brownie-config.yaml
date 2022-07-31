@@ -11,4 +11,4 @@ wallets:
   executor_addr: ${EXECUTOR}
   seller_addr: ${SELLER}
   buyer_addr: ${BUYER}
-  owner_addr: ${PRIVATE_KEY}
+  owner_addr: ${OWNER}

@@ -20,7 +20,7 @@ def main():
     # LandRegistry.deploy(
     #     {"from": get_account(ownerAddress)})
     # land_registry = create_contract()
-    deploy_contract()
+    print(deploy_contract())
 
 
 def create_contract():
@@ -67,7 +67,11 @@ def register_land(uri=None, sellerAddress=None, price=None, executorAddress=None
 
 
 def sale(seller=None, buyer=None, landToken=None, saleType=None, salePrice=None, executor=None, land_registry=None):
-    if not seller or not buyer or not landToken or not salePrice or not land_registry or not executor or not saleType:
+
+    print(seller, buyer, landToken, saleType,
+          salePrice, executor, land_registry)
+
+    if not seller or not buyer or landToken is None or not salePrice or not land_registry or not executor or saleType is None:
         return False
 
     tx = land_registry.executeSale(get_account(seller), get_account(
@@ -78,21 +82,25 @@ def sale(seller=None, buyer=None, landToken=None, saleType=None, salePrice=None,
 
 
 def deploy_contract():
-    land_registry = create_contract()
-    land_registry = create_executor(
-        "Austin", executorAddress, land_registry)
-    land_registry = create_user(name="Buyer", cof="Father", resident="India",
-                                gender="Male", userAddress=buyerAddress, land_registry=land_registry)
-    land_registry = create_user(name="Seller", cof="Mother", resident="India",
-                                gender="Female", userAddress=sellerAddress, land_registry=land_registry)
-    land_registry = register_land(uri="https://", sellerAddress=sellerAddress, price=10,
-                                  land_registry=land_registry, executorAddress=executorAddress)
-    land_registry = sale(seller=sellerAddress, buyer=buyerAddress,
-                         landToken=0, saleType=salesTypeMap["NEW"], salePrice=11, executor=executorAddress, land_registry=land_registry)
-
-    print(land_registry.getContractBalance(
-        {"from": get_account(ownerAddress)}))
-    tx = land_registry.withdrawBalance({"from": get_account(ownerAddress)})
-    tx.wait(1)
+    land_registry = LandRegistry.deploy({"from": get_account(ownerAddress)})
+    if land_registry:
+        land_registry = create_executor(
+            "Austin", executorAddress, land_registry)
+    if land_registry:
+        land_registry = create_user(name="Buyer", cof="Father", resident="India",
+                                    gender="Male", userAddress=buyerAddress, land_registry=land_registry)
+        print("Success")
+    if land_registry:
+        land_registry = create_user(name="Seller", cof="Mother", resident="India",
+                                    gender="Female", userAddress=sellerAddress, land_registry=land_registry)
+        print("Success")
+    if land_registry:
+        land_registry = register_land(uri="https://", sellerAddress=sellerAddress,
+                                      price=10, land_registry=land_registry, executorAddress=executorAddress)
+        print(f"Success {land_registry}")
+    if land_registry:
+        land_registry = sale(seller=sellerAddress, buyer=buyerAddress, landToken=0,
+                             saleType=salesTypeMap["NEW"], salePrice=11, executor=executorAddress, land_registry=land_registry)
+        print("Success")
 
     return True
