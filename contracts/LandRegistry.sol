@@ -58,19 +58,26 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
     mapping(address => OwnerType) users;
     mapping(uint256 => LandVoucher) public lands;
     mapping(uint256 => RegisterEntry) public landRegister;
-    mapping(address => uint256[]) public ownedAssets;
+    mapping(address => uint256[]) public ownedLands;
     mapping(address => Executor) public executors;
 
     function hasRole(address _addr) internal view returns (bool) {
         return executors[_addr].isVal;
     }
 
-    modifier onlyExecutor() {
+    function getUserDetails() external view returns (OwnerType memory) {
+        return users[msg.sender];
+    }
+
+    function getOwnedAssets() external view returns (uint256[] memory) {
+        return ownedLands[msg.sender];
+    }
+
+    function onlyExecutor() internal view {
         require(
             hasRole(msg.sender),
-            "Only Executors can execute this function"
+            "Only Executors"
         );
-        _;
     }
 
     function safeMint(
@@ -116,7 +123,8 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         string memory _uri,
         address builder,
         uint256 _price
-    ) public onlyExecutor {
+    ) public {
+        onlyExecutor();
         bytes memory signature = bytes(
             concat(string(abi.encodePacked(builder)), "BSIG")
         );
@@ -130,7 +138,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         registerIndex++;
     }
 
-    function _verify(LandVoucher memory lv, address _asSigner)
+    function _verify(bytes memory _builderSignature, address _asSigner)
         private
         pure
         returns (bool)
@@ -140,10 +148,10 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         );
         return
             keccak256(abi.encodePacked(tempSignature)) ==
-            keccak256(abi.encodePacked(lv.builderSignature));
+            keccak256(abi.encodePacked(_builderSignature));
     }
 
-    function _verifyOwnerSignature(RegisterEntry memory lr, address _asOwner)
+    function _verifyOwnerSignature(bytes memory _lrOwnerSignature, address _asOwner)
         private
         pure
         returns (bool)
@@ -153,7 +161,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         );
         return
             keccak256(abi.encodePacked(tempSignature)) ==
-            keccak256(abi.encodePacked(lr.ownerSignature));
+            keccak256(abi.encodePacked(_lrOwnerSignature));
     }
 
     function executeSale(
@@ -162,14 +170,13 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         uint256 _landToken,
         SaleType _sType,
         uint256 _salePrice
-    ) public onlyExecutor {
+    ) public {
+        onlyExecutor();
         require(
             (_sType == SaleType.NEW && lands[_landToken].isSold == false) ||
                 (_sType != SaleType.NEW && lands[_landToken].isSold),
-            "Invalid Sale Condition #1"
+            "Invalid"
         );
-        OwnerType memory buyer = users[_buyer];
-        OwnerType memory seller = users[_seller];
 
         uint256 fees = 10000000;
 
@@ -182,21 +189,21 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         }
         LandVoucher memory lv = lands[_landToken];
         if (_sType == SaleType.NEW) {
-            bool verified = _verify(lv, _seller);
+            bool verified = _verify(lv.builderSignature, _seller);
             require(verified, "Signature Error");
-            require(lv.isSold == false, "Invalid Sale Condition inner New");
+            require(lv.isSold == false, "Invalid");
             _safeMint(_seller, _landToken);
             _setTokenURI(_landToken, lv.uri);
             _transfer(_seller, _buyer, _landToken);
             lands[_landToken].isSold = true;
         } else {
             bool verifyOwnershipOfSeller = _verifyOwnerSignature(
-                landRegister[_landToken],
+                landRegister[_landToken].ownerSignature,
                 _seller
             );
             require(
                 verifyOwnershipOfSeller,
-                "The given Seller is not the owner of the land specified for selling"
+                "The given Seller is not the owner of the land"
             );
             require(lv.isSold, "Invalid Sale Condition");
             _transfer(_seller, _buyer, _landToken);
@@ -206,24 +213,23 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         );
         landRegister[_landToken] = RegisterEntry(
             _landToken,
-            seller,
-            buyer,
+            users[_seller],
+            users[_buyer],
             _sType,
             _salePrice,
             fees,
             newOwnerSignature
         );
         if (_sType == SaleType.NEW) {
-            ownedAssets[_buyer].push(_landToken);
+            ownedLands[_buyer].push(_landToken);
         } else {
-            uint256[] memory objects = ownedAssets[_seller];
-            for (uint256 i = 0; i < objects.length; i = i + 1) {
-                if (objects[i] == _landToken) {
-                    delete ownedAssets[_seller][i];
+            for (uint256 i = 0; i < ownedLands[_seller].length; i = i + 1) {
+                if (ownedLands[_seller][i] == _landToken) {
+                    delete ownedLands[_seller][i];
                     break;
                 }
             }
-            ownedAssets[_buyer].push(_landToken);
+            ownedLands[_buyer].push(_landToken);
         }
         contractBalance += fees;
     }
