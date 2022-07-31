@@ -8,12 +8,91 @@ sellerAddress = config["wallets"]["seller_addr"]
 buyerAddress = config["wallets"]["buyer_addr"]
 
 
+salesTypeMap = {
+    "NEW": 0,
+    "RESALE": 1,
+    "INHERITANCE": 2,
+    "GIFT": 3
+}
+
+
 def main():
     # LandRegistry.deploy(
     #     {"from": get_account(ownerAddress)})
+    # land_registry = create_contract()
+    deploy_contract()
+
+
+def create_contract():
     if LandRegistry == []:
         land_registry = LandRegistry.deploy(
             {"from": get_account(ownerAddress)})
     else:
         land_registry = LandRegistry[-1]
-    print(land_registry)
+
+    return land_registry
+
+
+def create_executor(name=None, executorAddress=None, land_registry=None):
+    if not name or not executorAddress or not land_registry:
+        return False
+
+    tx = land_registry.addExecutor(name, get_account(executorAddress), {
+                                   "from": get_account(ownerAddress)})
+    tx.wait(1)
+
+    return land_registry
+
+
+def create_user(name: str = None, cof: str = None, resident: str = None, gender: str = None, userAddress=None, land_registry=None):
+    if not name or not cof or not resident or not gender or not userAddress or not land_registry:
+        return False
+
+    tx = land_registry.registerUserInRegistry(name, cof, resident, gender, {
+                                              "from": get_account(userAddress)})
+    tx.wait(1)
+
+    return land_registry
+
+
+def register_land(uri=None, sellerAddress=None, price=None, executorAddress=None, land_registry=None):
+    if not uri or not sellerAddress or not price or not land_registry or not executorAddress:
+        return False
+
+    tx = land_registry.registerLand(uri, get_account(sellerAddress), price, {
+                                    "from": get_account(executorAddress)})
+    tx.wait(1)
+
+    return land_registry
+
+
+def sale(seller=None, buyer=None, landToken=None, saleType=None, salePrice=None, executor=None, land_registry=None):
+    if not seller or not buyer or not landToken or not salePrice or not land_registry or not executor or not saleType:
+        return False
+
+    tx = land_registry.executeSale(get_account(seller), get_account(
+        buyer), landToken, saleType, salePrice, {"from": get_account(executor)})
+    tx.wait(1)
+
+    return land_registry
+
+
+def deploy_contract():
+    land_registry = create_contract()
+    land_registry = create_executor(
+        "Austin", executorAddress, land_registry)
+    land_registry = create_user(name="Buyer", cof="Father", resident="India",
+                                gender="Male", userAddress=buyerAddress, land_registry=land_registry)
+    land_registry = create_user(name="Seller", cof="Mother", resident="India",
+                                gender="Female", userAddress=sellerAddress, land_registry=land_registry)
+    land_registry = register_land(uri="https://", sellerAddress=sellerAddress, price=10,
+                                  land_registry=land_registry, executorAddress=executorAddress)
+    land_registry = sale(seller=sellerAddress, buyer=buyerAddress,
+                         landToken=0, saleType=salesTypeMap["NEW"], salePrice=11, executor=executorAddress, land_registry=land_registry)
+
+    print(land_registry.getContractBalance(
+        {"from": get_account(ownerAddress)}))
+    tx = land_registry.withdrawBalance({"from": get_account(ownerAddress)})
+    tx.wait(1)
+
+    return True
