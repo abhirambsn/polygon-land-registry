@@ -9,11 +9,11 @@ buyerAddress = config["wallets"]["buyer_addr"]
 
 
 def main():
-    # LandRegistry.deploy(
-    #     {"from": get_account(ownerAddress)})
-    if LandRegistry == []:
-        land_registry = LandRegistry.deploy(
-            {"from": get_account(ownerAddress)})
-    else:
-        land_registry = LandRegistry[-1]
+    land_registry =  LandRegistry.deploy(
+        {"from": get_account(ownerAddress)})
+    # if LandRegistry == []:
+    #     land_registry = LandRegistry.deploy(
+    #         {"from": get_account(ownerAddress)})
+    # else:
+    #     land_registry = LandRegistry[-1]
     print(land_registry)
