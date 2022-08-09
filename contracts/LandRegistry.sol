@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
-pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {HeptaSign} from "./HeptaSign.sol";
 
 contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
     using ECDSA for bytes32;
     bytes32 public constant EXECUTOR_ROLE = keccak256("EXECUTOR");
     uint256 registerIndex;
     uint256 contractBalance;
+    uint noUsers;
 
     constructor() ERC721("LandRegistry", "LRY") {
         registerIndex = 0;
         contractBalance = 0;
+        noUsers = 0;
     }
 
     enum SaleType {
@@ -30,6 +32,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         string resAddress;
         string care_of;
         string gender;
+        address addr;
     }
 
     struct RegisterEntry {
@@ -55,22 +58,30 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         bool isVal;
     }
 
-    mapping(address => OwnerType) users;
+    mapping(address => OwnerType) public users;
     mapping(uint256 => LandVoucher) public lands;
     mapping(uint256 => RegisterEntry) public landRegister;
     mapping(address => uint256[]) public ownedLands;
     mapping(address => Executor) public executors;
 
+    function getUsers() external view returns(uint) {
+        return noUsers;
+    }
+
+    function getOwnedLands(address addr) external view returns(uint256[] memory) {
+        return ownedLands[addr];
+    }
+
+    function getLastSale() external view returns(RegisterEntry memory) {
+        if (registerIndex - 1 < 0) {
+            RegisterEntry memory emptyEntry;
+            return emptyEntry;
+        }
+        return landRegister[registerIndex-1];
+    }
+
     function hasRole(address _addr) internal view returns (bool) {
         return executors[_addr].isVal;
-    }
-
-    function getUserDetails() external view returns (OwnerType memory) {
-        return users[msg.sender];
-    }
-
-    function getOwnedAssets() external view returns (uint256[] memory) {
-        return ownedLands[msg.sender];
     }
 
     function onlyExecutor() internal view {
@@ -108,25 +119,22 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         string memory _resAddress,
         string memory _gender
     ) public {
-        users[msg.sender] = OwnerType(_name, _resAddress, _cof, _gender);
+        users[msg.sender] = OwnerType(_name, _resAddress, _cof, _gender, msg.sender);
+        noUsers++;
     }
 
-    function concat(string memory a, string memory b)
-        internal
-        pure
-        returns (string memory)
-    {
-        return string(abi.encodePacked(a, "_", b));
+    function getLatestLandIdx() external view returns (uint256) {
+        return registerIndex - 1;
     }
 
     function registerLand(
         string memory _uri,
         address builder,
         uint256 _price
-    ) public {
+    ) public returns (uint256) {
         onlyExecutor();
         bytes memory signature = bytes(
-            concat(string(abi.encodePacked(builder)), "BSIG")
+            HeptaSign.concat(string(abi.encodePacked(builder)), "BSIG")
         );
         lands[registerIndex] = LandVoucher(
             registerIndex,
@@ -136,33 +144,10 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
             signature
         );
         registerIndex++;
+        return registerIndex - 1;
     }
 
-    function _verify(bytes memory _builderSignature, address _asSigner)
-        private
-        pure
-        returns (bool)
-    {
-        bytes memory tempSignature = bytes(
-            concat(string(abi.encodePacked(_asSigner)), "BSIG")
-        );
-        return
-            keccak256(abi.encodePacked(tempSignature)) ==
-            keccak256(abi.encodePacked(_builderSignature));
-    }
-
-    function _verifyOwnerSignature(bytes memory _lrOwnerSignature, address _asOwner)
-        private
-        pure
-        returns (bool)
-    {
-        bytes memory tempSignature = bytes(
-            concat(string(abi.encodePacked(_asOwner)), "OWNER_SIG")
-        );
-        return
-            keccak256(abi.encodePacked(tempSignature)) ==
-            keccak256(abi.encodePacked(_lrOwnerSignature));
-    }
+    
 
     function executeSale(
         address _seller,
@@ -189,7 +174,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         }
         LandVoucher memory lv = lands[_landToken];
         if (_sType == SaleType.NEW) {
-            bool verified = _verify(lv.builderSignature, _seller);
+            bool verified = HeptaSign._verify(lv.builderSignature, _seller);
             require(verified, "Signature Error");
             require(lv.isSold == false, "Invalid");
             _safeMint(_seller, _landToken);
@@ -197,7 +182,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
             _transfer(_seller, _buyer, _landToken);
             lands[_landToken].isSold = true;
         } else {
-            bool verifyOwnershipOfSeller = _verifyOwnerSignature(
+            bool verifyOwnershipOfSeller = HeptaSign._verifyOwnerSignature(
                 landRegister[_landToken].ownerSignature,
                 _seller
             );
@@ -209,7 +194,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
             _transfer(_seller, _buyer, _landToken);
         }
         bytes memory newOwnerSignature = bytes(
-            concat(string(abi.encodePacked(_buyer)), "OWNER_SIG")
+            HeptaSign.concat(string(abi.encodePacked(_buyer)), "OWNER_SIG")
         );
         landRegister[_landToken] = RegisterEntry(
             _landToken,

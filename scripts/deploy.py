@@ -1,4 +1,4 @@
-from brownie import LandRegistry, accounts, config, network
+from brownie import LandRegistry, HeptaSign, accounts, config, network
 from scripts.helpful_scripts import get_account
 from web3 import Web3
 
@@ -82,6 +82,7 @@ def sale(seller=None, buyer=None, landToken=None, saleType=None, salePrice=None,
 
 
 def deploy_contract():
+    heptasign_library = HeptaSign.deploy({"from": get_account(ownerAddress)})
     land_registry = LandRegistry.deploy({"from": get_account(ownerAddress)})
     if land_registry:
         land_registry = create_executor(
@@ -95,12 +96,12 @@ def deploy_contract():
                                     gender="Female", userAddress=sellerAddress, land_registry=land_registry)
         print("Success")
     if land_registry:
-        land_registry = register_land(uri="https://", sellerAddress=sellerAddress,
+        land_registry = register_land(uri="http://ipfs.io/ipfs/bafkreig6jteg6dlutusov44fdvl3loythdw557fvahy5t5dvyyva3pxbea", sellerAddress=sellerAddress,
                                       price=10, land_registry=land_registry, executorAddress=executorAddress)
         print(f"Success {land_registry}")
     if land_registry:
         land_registry = sale(seller=sellerAddress, buyer=buyerAddress, landToken=0,
-                             saleType=salesTypeMap["NEW"], salePrice=11, executor=executorAddress, land_registry=land_registry)
+                             saleType=salesTypeMap["NEW"], salePrice=1100000000000000000, executor=executorAddress, land_registry=land_registry)
         print("Success")
 
     return True

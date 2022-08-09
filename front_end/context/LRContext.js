@@ -1,129 +1,157 @@
 import { createContext, useEffect, useState } from "react";
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../lib/constants";
 import { useRouter } from "next/router";
-import { useMoralis } from "react-moralis";
+import { ethers } from "ethers";
+import { useWeb3 } from "@3rdweb/hooks";
 
 export const LRContext = createContext();
 
 export const LRProvider = ({ children }) => {
   const router = useRouter();
-  const {
-    web3,
-    Moralis,
-    authenticate,
-    isAuthenticated,
-    logout,
-    isWeb3Enabled,
-    enableWeb3,
-    user,
-  } = useMoralis();
-  const [account, setAccount] = useState("");
+
   const [userData, setUserData] = useState([]);
+  const { provider, address, disconnectWallet, connectWallet } = useWeb3();
 
-  useEffect(() => {
-    (async () => {
-      if (!isWeb3Enabled) {
-        await enableWeb3();
-      }
-    })();
-  }, []);
-
-  const loginWithMetamask = async () => {
-    if (!isAuthenticated) {
-      const user = await authenticate({
-        signingMessage: "User Authentication",
-      });
-      setAccount(user?.get("ethAddress"));
-      router.replace("/dashboard");
-    } else {
-      await logout();
-    }
-  };
-  const loginWithWalletConnect = async () => {
-    if (!isAuthenticated) {
-      const user = await authenticate({
-        provider: "walletconnect",
-        signingMessage: "User Authentication",
-      });
-      setAccount(user?.get("ethAddress"));
-      router.replace("/dashboard");
-    }
-  };
-  const loginWithWeb3Auth = async () => {
-    if (!isAuthenticated) {
-      const user = await authenticate({
-        provider: "web3Auth",
-        clientId: process.env.NEXT_PUBLIC_WEB3AUTH_KEY,
-        chainId: 0x13881,
-        signingMessage: "User Authentication",
-      });
-      setAccount(user?.get("ethAddress"));
-      router.replace("/dashboard");
-    }
-  };
-
-  const getUserDetail = async () => {
-    if (!isAuthenticated) await authenticate();
-    if (!isWeb3Enabled) await enableWeb3();
-    
-    let options = {
-      contractAddress: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: "getUserDetails",
-    };
-    
-    const msg = await Moralis.executeFunction(options);
-    if (msg?.name === "") {
-      router.push("/register");
-    }
-    console.log(msg);
-    setUserData(msg);
-    return msg;
-  };
-
-  const registerUser = async (name, cof, resAddr, gender) => {
-    if (!isAuthenticated) {
-      alert("Unauthenticated");
-      return;
-    }
-    let genderText = "";
-    if (gender?.male) genderText = "Male";
-    else if (gender?.female) genderText = "Female";
-    let options = {
-      contractAddress: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: "registerUserInRegistry",
-      params: {
-        _name: name,
-        _cof: cof,
-        _resAddress: resAddr,
-        _gender: genderText,
-      },
-    };
-
-    const registration = await Moralis.executeFunction(options);
-    console.log(registration);
-    router.push("/dashboard");
-  };
-
-  const executorLogin = async (provider) => {
-    if (isAuthenticated) {
-      await logout();
-    }
-    const user = await authenticate({
-      provider,
-      signingMessage: "Executor Authentication",
-    });
-    setAccount(user?.get("ethAddress"));
-    const etherProvider = await enableWeb3();
-    const ethers = Moralis.web3Library;
-    const signer = etherProvider.getSigner();
+  const getContract = async () => {
+    const signer = provider.getSigner();
     const LandRegistry = new ethers.Contract(
       CONTRACT_ADDRESS,
       CONTRACT_ABI,
       signer
     );
-    const isAuth = await LandRegistry.executors(user?.get("ethAddress"));
+    return LandRegistry;
+  };
+
+  const getUserDetail = async () => {
+    const landContract = await getContract();
+    const msg = await landContract.users(address);
+    if (msg?.name === "") {
+      router.push("/register");
+    }
+    setUserData(msg);
+    return msg;
+  };
+
+  const getExecutorDetail = async () => {
+    const LandRegistry = await getContract();
+    const msg = await LandRegistry.executors(address);
+    setUserData(msg);
+    return msg;
+  };
+
+  const getOwnedLands = async () => {
+    const landContract = await getContract();
+    const assets = await landContract.getOwnedLands(address);
+    return assets;
+  };
+
+  const getLandValue = async (ids) => {
+    const LandRegistry = await getContract();
+    let total = ethers.BigNumber.from(0);
+    for (let id in ids) {
+      const val = await LandRegistry.landRegister(id);
+      total = total.add(val?.salePrice);
+    }
+    const price = ethers.utils.formatEther(total);
+    return price;
+  };
+
+  const getLandDataFromId = async (id) => {
+    try {
+      const LandRegistry = await getContract();
+      const data = await LandRegistry.landRegister(id);
+      if (data?.ownerSignature === '0x') {
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const getLandParticulars = async (id) => {
+    try {
+      const LandRegistry = await getContract();
+      const data = await LandRegistry.lands(id);
+      if (data?.builderSignature === '0x') {
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const getUserDetailsByAddress = async (addr) => {
+    try {
+      const LandRegistry = await getContract();
+      const msg = await LandRegistry.users(addr);
+      if (msg?.addr === "0x") {
+        return null;
+      }
+      return msg;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  const getOwnedAssetsByAddress = async (addr) => {
+    try {
+      const LandRegistry = await getContract();
+      const msg = await LandRegistry.getOwnedLands(addr);
+      return msg;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  const getContractBalance = async () => {
+    try {
+      const LandRegistry = await getContract();
+      const msg = await LandRegistry.getContractBalance();
+      return msg;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  const withdrawBalance = async () => {
+    try {
+      const LandRegistry = await getContract();
+      const msg = await LandRegistry.withdrawBalance();
+      return msg;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  const registerUser = async (name, cof, resAddr, gender) => {
+    if (!address) {
+      alert("Unauthenticated");
+      router.get("/login");
+      return;
+    }
+    let genderText = "";
+    if (gender?.male) genderText = "Male";
+    else if (gender?.female) genderText = "Female";
+
+    const LandRegistry = await getContract();
+    await LandRegistry.registerUserInRegistry(name, cof, resAddr, genderText);
+
+    await Moralis.executeFunction(options);
+    router.push("/dashboard");
+  };
+
+  const executorLogin = async () => {
+    await connectWallet("injected");
+    const LandRegistry = await getContract();
+    const isAuth = await LandRegistry.executors(address);
     if (isAuth?.isVal) {
       router.replace("/executor/");
     } else {
@@ -132,40 +160,105 @@ export const LRProvider = ({ children }) => {
     }
   };
 
-  const getOwnedLands = async () => {
-    if (!isAuthenticated) await authenticate();
-    if (!isWeb3Enabled) await enableWeb3();
-
-    let options = {
-      contractAddress: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: "getOwnedAssets"
+  const ownerLogin = async () => {
+    await connectWallet("injected");
+    const LandRegistry = await getContract();
+    const isAuth = await LandRegistry.owner();
+    if (isAuth === address) {
+      router.replace("/owner/");
+    } else {
+      alert("Access Denied, Check if you signing with correct account");
+      router.replace("/owner/login");
     }
-
-    const assets = await Moralis.executeFunction(options);
-    return assets;
   };
 
-  const logOut = async () => {
-    await logout();
-    setAccount("");
+  const checkExecutor = async () => {
+    const LandRegistry = await getContract();
+    const isAuth = await LandRegistry.executors(address);
+    return isAuth?.isVal;
   };
+
+  const registerLand = async (_uri, builder, _price) => {
+    try {
+      const LandRegistry = await getContract();
+      const msg = await LandRegistry.registerLand(_uri, builder, _price);
+      return msg;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const executeSale = async (
+    _seller,
+    _buyer,
+    _landToken,
+    _saleType,
+    _salePrice
+  ) => {
+    try {
+      const LandRegistry = await getContract();
+      await LandRegistry.lands(_landToken);
+      const msg = await LandRegistry.executeSale(
+        _seller,
+        _buyer,
+        _landToken,
+        _saleType,
+        _salePrice
+      );
+      return msg;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const getLastSale = async () => {
+    const LandRegistry = await getContract();
+    const msg = await LandRegistry.getLastSale();
+    return msg;
+  };
+
+  const noUsers = async () => {
+    const LandRegistry = await getContract();
+    const msg = await LandRegistry.getUsers();
+    return msg;
+  };
+
+  const isOwner = async () => {
+    const LandRegistry = await getContract();
+    const msg = await LandRegistry.owner();
+    console.log(msg);
+    if (address === msg) {
+      return true;
+    }
+    return false;
+  }
+
   return (
     <LRContext.Provider
       value={{
-        loginWithMetamask,
-        loginWithWalletConnect,
-        loginWithWeb3Auth,
-        executorLogin,
-        logOut,
-        account,
         getUserDetail,
-        isAuthenticated,
-        registerUser,
-        userData,
-        user,
-        setAccount,
         getOwnedLands,
+        getLandValue,
+        userData,
+        registerUser,
+        setUserData,
+        getLandDataFromId,
+        executorLogin,
+        checkExecutor,
+        getExecutorDetail,
+        getLastSale,
+        noUsers,
+        registerLand,
+        executeSale,
+        getLandParticulars,
+        getUserDetailsByAddress,
+        getOwnedAssetsByAddress,
+        getContractBalance,
+        withdrawBalance,
+        isOwner,
+        ownerLogin
       }}
     >
       {children}

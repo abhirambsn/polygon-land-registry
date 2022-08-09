@@ -1,17 +1,20 @@
 import { LRProvider } from "../context/LRContext";
-import { MoralisProvider } from "react-moralis";
+import {ThirdwebWeb3Provider} from '@3rdweb/hooks'
 import "../styles/globals.css";
 
+import "regenerator-runtime/runtime";
+
 function MyApp({ Component, pageProps }) {
+  const supportedChains = [80001, 4];
+  const connectors = {
+    injected: {}
+  }
   return (
-    <MoralisProvider
-      appId={process.env.NEXT_PUBLIC_MORALIS_APPID}
-      serverUrl={process.env.NEXT_PUBLIC_MORALIS_URL}
-    >
+    <ThirdwebWeb3Provider supportedChainIds={supportedChains} connectors={connectors}>
       <LRProvider>
         <Component {...pageProps} />
       </LRProvider>
-    </MoralisProvider>
+      </ThirdwebWeb3Provider>
   );
 }
 

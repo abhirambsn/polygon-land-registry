@@ -1,13 +1,33 @@
-import React, { useContext, useState } from "react";
+import { useWeb3 } from "@3rdweb/hooks";
+import { useRouter } from "next/router";
+import React, { useContext, useEffect, useState } from "react";
 import { LRContext } from "../context/LRContext";
+import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../lib/constants";
 
 function RegisterPage() {
-  const { account, registerUser } = useContext(LRContext);
+  const { userData, getUserDetail, registerUser } = useContext(LRContext);
+  const {address} = useWeb3();
 
+  const router = useRouter();
   const [name, setName] = useState("");
   const [cof, setCof] = useState("");
   const [gender, setGender] = useState({ male: 0, female: 0 });
   const [resAddr, setResAddr] = useState("");
+
+  
+
+  useEffect(() => {
+    if (!address) {
+      router.replace("/login");
+    }
+    (async () => {
+      await getUserDetail();
+      if (userData?.name !== "") {
+        router.replace("/dashboard");
+      }
+    })();
+  }, []);
+
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-500 to-blue-500">
       <div className="flex flex-col p-8 px-32 items-center rounded-lg bg-white space-y-6">
@@ -26,7 +46,7 @@ function RegisterPage() {
               type="text"
               placeholder="0x"
               disabled={true}
-              value={account}
+              value={address}
             />
           </div>
 
@@ -85,7 +105,6 @@ function RegisterPage() {
                     onChange={(e) =>
                       setGender({ female: 0, male: e.target.value })
                     }
-                    
                   />
                 </label>
               </div>
@@ -100,7 +119,6 @@ function RegisterPage() {
                       setGender({ male: 0, female: e.target.value })
                     }
                     className="radio checked:bg-pink-500"
-                    
                   />
                 </label>
               </div>
