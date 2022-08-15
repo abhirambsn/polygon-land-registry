@@ -186,6 +186,7 @@ export const LRProvider = ({ children }) => {
   const checkExecutor = async () => {
     const LandRegistry = await getContract();
     const isAuth = await LandRegistry.executors(address);
+    console.log(isAuth);
     return isAuth?.isVal;
   };
 

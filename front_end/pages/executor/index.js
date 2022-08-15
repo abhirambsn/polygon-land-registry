@@ -19,7 +19,7 @@ import UserDetails from "../../components/UserDetails";
 function ExecutorDashboard() {
   const router = useRouter();
   const { address } = useWeb3();
-  const { getExecutorDetail, getLastSale, noUsers, userData } =
+  const { getExecutorDetail, checkExecutor, getLastSale, noUsers, userData } =
     useContext(LRContext);
   const [value, setValue] = useState(0);
   const [maticData, setMaticData] = useState({});
@@ -39,6 +39,10 @@ function ExecutorDashboard() {
       if (typeof window === 'undefined') return;
       if (!address) {
         router.replace("/executor/login");
+        return;
+      }
+      if (!await checkExecutor()) {
+        router.replace('/executor/login');
         return;
       }
       const url =
