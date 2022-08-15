@@ -21,6 +21,7 @@ function RegisterPage() {
       router.replace("/login");
     }
     (async () => {
+      if (typeof window === 'undefined') return;
       await getUserDetail();
       if (userData?.name !== "") {
         router.replace("/dashboard");

@@ -34,12 +34,13 @@ function ExecutorDashboard() {
   const [userDataModal, setUserDataModal] = useState(false);
 
   useEffect(() => {
-    if (!address) {
-      router.replace("/executor/login");
-      return;
-    }
     setLoading(true);
     (async () => {
+      if (typeof window === 'undefined') return;
+      if (!address) {
+        router.replace("/executor/login");
+        return;
+      }
       const url =
         "https://api.coingecko.com/api/v3/coins/matic-network?localization=false&community_data=false&developer_data=false&sparkline=false";
       const req = await fetch(url);
@@ -55,7 +56,7 @@ function ExecutorDashboard() {
       setNUsers(noUsersData.toString());
       setLoading(false);
     })();
-  }, []);
+  }, [address]);
   return (
     <div>
       {loading ? (
@@ -95,7 +96,7 @@ function ExecutorDashboard() {
                           : "text-red-600"
                       }`}
                     >
-                      {maticData?.change > 0 ? "+" : "-"} {maticData?.change} %
+                      {maticData?.change > 0 && "+"} {maticData?.change?.toFixed(2)} %
                     </span>
                   </div>
                 </div>

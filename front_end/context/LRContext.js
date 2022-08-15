@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../lib/constants";
+import { CONTRACT_ABI, CONTRACT_ADDRESS, saleTypeMap } from "../lib/constants";
 import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { useWeb3 } from "@3rdweb/hooks";
@@ -60,7 +60,7 @@ export const LRProvider = ({ children }) => {
     try {
       const LandRegistry = await getContract();
       const data = await LandRegistry.landRegister(id);
-      if (data?.ownerSignature === '0x') {
+      if (data?.ownerSignature === "0x") {
         return null;
       }
       return data;
@@ -74,7 +74,7 @@ export const LRProvider = ({ children }) => {
     try {
       const LandRegistry = await getContract();
       const data = await LandRegistry.lands(id);
-      if (data?.builderSignature === '0x') {
+      if (data?.builderSignature === "0x") {
         return null;
       }
       return data;
@@ -96,7 +96,7 @@ export const LRProvider = ({ children }) => {
       console.error(err);
       return null;
     }
-  }
+  };
 
   const getOwnedAssetsByAddress = async (addr) => {
     try {
@@ -107,7 +107,7 @@ export const LRProvider = ({ children }) => {
       console.error(err);
       return null;
     }
-  }
+  };
 
   const getContractBalance = async () => {
     try {
@@ -118,7 +118,7 @@ export const LRProvider = ({ children }) => {
       console.error(err);
       return null;
     }
-  }
+  };
 
   const withdrawBalance = async () => {
     try {
@@ -129,7 +129,7 @@ export const LRProvider = ({ children }) => {
       console.error(err);
       return null;
     }
-  }
+  };
 
   const registerUser = async (name, cof, resAddr, gender) => {
     if (!address) {
@@ -143,9 +143,20 @@ export const LRProvider = ({ children }) => {
 
     const LandRegistry = await getContract();
     await LandRegistry.registerUserInRegistry(name, cof, resAddr, genderText);
-
-    await Moralis.executeFunction(options);
     router.push("/dashboard");
+  };
+
+  const addExecutor = async (name, addr) => {
+    if (!address) {
+      return null;
+    }
+    try {
+      const LandRegistry = await getContract();
+      const msg = await LandRegistry.addExecutor(name, addr);
+      return msg;
+    } catch (err) {
+      return null;
+    }
   };
 
   const executorLogin = async () => {
@@ -199,12 +210,22 @@ export const LRProvider = ({ children }) => {
     try {
       const LandRegistry = await getContract();
       await LandRegistry.lands(_landToken);
+      let fee = ethers.BigNumber.from("10000000");
+      const _sp = ethers.BigNumber.from(_salePrice);
+      if (_saleType === 0 || _saleType === 1) {
+        fee = fee.add((_sp.div(1000)).mul(1));
+      } else if (_saleType == 2) {
+        fee = fee.add((_sp.div(1000)).mul(5));
+      } else if (_saleType == 3) {
+        fee = fee.add(_sp.div(1000).mul(8));
+      }
       const msg = await LandRegistry.executeSale(
         _seller,
         _buyer,
         _landToken,
         _saleType,
-        _salePrice
+        _salePrice,
+        { value: fee }
       );
       return msg;
     } catch (err) {
@@ -233,7 +254,7 @@ export const LRProvider = ({ children }) => {
       return true;
     }
     return false;
-  }
+  };
 
   return (
     <LRContext.Provider
@@ -258,7 +279,8 @@ export const LRProvider = ({ children }) => {
         getContractBalance,
         withdrawBalance,
         isOwner,
-        ownerLogin
+        ownerLogin,
+        addExecutor,
       }}
     >
       {children}

@@ -17,12 +17,13 @@ function DashboardPage() {
   const [maticData, setMaticData] = useState({});
   const router = useRouter();
   useEffect(() => {
-    if (!address) {
-      router.replace("/login");
-      return;
-    }
     setLoading(true);
     (async () => {
+      if (typeof window === 'undefined') return;
+      if (!address) {
+        router.replace("/login");
+        return;
+      }
       const url =
         "https://api.coingecko.com/api/v3/coins/matic-network?localization=false&community_data=false&developer_data=false&sparkline=false";
       const req = await fetch(url);
@@ -35,9 +36,10 @@ function DashboardPage() {
       const dt = await getOwnedLands();
       const val = await getLandValue(dt);
       setLandsOwned(dt?.length);
+      setValue(val);
       setLoading(false);
     })();
-  }, []);
+  }, [address]);
   return (
     <div>
       {loading ? (
@@ -73,7 +75,7 @@ function DashboardPage() {
                           : "text-red-600"
                       }`}
                     >
-                      {maticData?.change > 0 ? "+" : "-"} {maticData?.change} %
+                      {maticData?.change > 0 && "+"} {maticData?.change?.toFixed(2)} %
                     </span>
                   </div>
                 </div>

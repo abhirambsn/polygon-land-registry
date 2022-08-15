@@ -19,6 +19,7 @@ function OwnedAssetsPage() {
 
   useEffect(() => {
     (async () => {
+      if (typeof window === 'undefined') return;
       if (!address) {
         router.replace("/login");
         return;

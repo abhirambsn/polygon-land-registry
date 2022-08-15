@@ -67,19 +67,21 @@ def register_land(uri=None, sellerAddress=None, price=None, executorAddress=None
 
 
 def sale(seller=None, buyer=None, landToken=None, saleType=None, salePrice=None, executor=None, land_registry=None):
-
-    print(seller, buyer, landToken, saleType,
-          salePrice, executor, land_registry)
-
     if not seller or not buyer or landToken is None or not salePrice or not land_registry or not executor or saleType is None:
         return False
 
     tx = land_registry.executeSale(get_account(seller), get_account(
-        buyer), landToken, saleType, salePrice, {"from": get_account(executor)})
+        buyer), landToken, saleType, salePrice, {"from": get_account(executor), "amount": 1100000010000000})
     tx.wait(1)
 
     return land_registry
 
+def withdrawBal(land_registry=None):
+    if not land_registry:
+        return False
+    tx = land_registry.withdrawBalance({"from": get_account(ownerAddress)})
+    tx.wait(1)
+    return land_registry
 
 def deploy_contract():
     heptasign_library = HeptaSign.deploy({"from": get_account(ownerAddress)})
@@ -103,5 +105,8 @@ def deploy_contract():
         land_registry = sale(seller=sellerAddress, buyer=buyerAddress, landToken=0,
                              saleType=salesTypeMap["NEW"], salePrice=1100000000000000000, executor=executorAddress, land_registry=land_registry)
         print("Success")
+    
+    if land_registry:
+        land_registry = withdrawBal(land_registry=land_registry)
 
     return True

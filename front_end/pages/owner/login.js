@@ -9,8 +9,10 @@ function OwnerLoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (address) {
       (async () => {
+        if (typeof window === 'undefined') return;
         if (await isOwner()) {
           router.push("/owner/");
         }

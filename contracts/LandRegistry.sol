@@ -105,7 +105,9 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
     }
 
     function withdrawBalance() public payable onlyOwner {
-        payable(owner()).transfer(contractBalance);
+        address payable ownerAddr = payable(owner());
+        (bool sent,) = ownerAddr.call{value: contractBalance}("");
+        require(sent, "Sent Failure");
         contractBalance = 0;
     }
 
@@ -155,7 +157,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         uint256 _landToken,
         SaleType _sType,
         uint256 _salePrice
-    ) public {
+    ) public payable {
         onlyExecutor();
         require(
             (_sType == SaleType.NEW && lands[_landToken].isSold == false) ||
@@ -172,6 +174,7 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         } else if (_sType == SaleType.GIFT) {
             fees += (_salePrice / 1000) * 8;
         }
+        require(msg.value == fees, "Invalid Fees Supplied");
         LandVoucher memory lv = lands[_landToken];
         if (_sType == SaleType.NEW) {
             bool verified = HeptaSign._verify(lv.builderSignature, _seller);
@@ -208,12 +211,20 @@ contract LandRegistry is ERC721, ERC721URIStorage, Ownable {
         if (_sType == SaleType.NEW) {
             ownedLands[_buyer].push(_landToken);
         } else {
-            for (uint256 i = 0; i < ownedLands[_seller].length; i = i + 1) {
+            uint idx = 0;
+            bool found = false;
+            for (uint i = 0; i < ownedLands[_seller].length; i++) {
                 if (ownedLands[_seller][i] == _landToken) {
-                    delete ownedLands[_seller][i];
+                    idx = i;
+                    found = true;
                     break;
                 }
             }
+            require(found, "Land Token Invalid");
+            for (uint i = idx; i < ownedLands[_seller].length - 1; i++) {
+                ownedLands[_seller][i] = ownedLands[_seller][i+1];
+            }
+            ownedLands[_seller].pop();
             ownedLands[_buyer].push(_landToken);
         }
         contractBalance += fees;

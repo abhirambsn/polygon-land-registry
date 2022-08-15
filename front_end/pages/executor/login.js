@@ -9,8 +9,10 @@ function ExecutorLoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (address) {
       (async () => {
+        if (typeof window === 'undefined') return;
         if (await checkExecutor()) {
           router.push("/executor/");
         }
