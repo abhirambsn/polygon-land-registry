@@ -36,13 +36,13 @@ function ExecutorDashboard() {
   useEffect(() => {
     setLoading(true);
     (async () => {
-      if (typeof window === 'undefined') return;
+      if (typeof window === "undefined") return;
       if (!address) {
         router.replace("/executor/login");
         return;
       }
-      if (!await checkExecutor()) {
-        router.replace('/executor/login');
+      if (!(await checkExecutor())) {
+        router.replace("/executor/login");
         return;
       }
       const url =
@@ -100,7 +100,8 @@ function ExecutorDashboard() {
                           : "text-red-600"
                       }`}
                     >
-                      {maticData?.change > 0 && "+"} {maticData?.change?.toFixed(2)} %
+                      {maticData?.change > 0 && "+"}{" "}
+                      {maticData?.change?.toFixed(2)} %
                     </span>
                   </div>
                 </div>
@@ -137,31 +138,6 @@ function ExecutorDashboard() {
                 Get User Details
               </button>
             </div>
-            <h3 className="text-2xl font-bold mt-4">Recent Sale</h3>
-            <table className="table w-full my-4">
-              
-                <tr>
-                  <th>ID</th>
-                  <th>Seller</th>
-                  <th>Buyer</th>
-                  <th>Sale Price</th>
-                  <th>Sale Type</th>
-                </tr>
-              <tbody>
-                <tr>
-                  {lastSale?.landId && <td>{lastSale?.landId.toString()}</td>}
-                  <td>{formatAddress(lastSale?.seller?.addr)}</td>
-                  <td>{formatAddress(lastSale?.buyer?.addr)}</td>
-
-                  {lastSale?.salePrice && (
-                    <td>
-                      {ethers.utils.formatEther(lastSale?.salePrice)} MATIC
-                    </td>
-                  )}
-                  <td>{saleTypeMap[lastSale?.sale]}</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       )}

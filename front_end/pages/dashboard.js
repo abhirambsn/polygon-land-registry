@@ -81,20 +81,6 @@ function DashboardPage() {
                 </div>
               </div>
             </div>
-            <h3 className="text-2xl font-bold mt-4">Recent Sale</h3>
-            <table className="table w-full my-4">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Seller</th>
-                  <th>Sale Price</th>
-                  <th>Sale Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr></tr>
-              </tbody>
-            </table>
           </div>
         </div>
       )}

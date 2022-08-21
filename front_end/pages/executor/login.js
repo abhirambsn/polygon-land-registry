@@ -9,15 +9,15 @@ function ExecutorLoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     if (address) {
       (async () => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === "undefined") return;
         if (await checkExecutor()) {
           router.push("/executor/");
         } else {
-          alert('Unauthorized');
-          router.replace('/');
+          alert("Unauthorized");
+          router.replace("/");
           return;
         }
       })();
@@ -45,6 +45,13 @@ function ExecutorLoginPage() {
             alt="Metamask Logo"
           />
           <span>Login With Metamask</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => router.replace("/")}
+          className="text-white flex space-x-3 items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-400 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-cyan-800 font-medium rounded-lg text-lg px-5 py-2.5 text-center mr-2 mb-2"
+        >
+          <span>Back</span>
         </button>
       </div>
     </div>

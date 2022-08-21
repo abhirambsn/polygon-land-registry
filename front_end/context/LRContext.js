@@ -124,6 +124,7 @@ export const LRProvider = ({ children }) => {
     try {
       const LandRegistry = await getContract();
       const msg = await LandRegistry.withdrawBalance();
+      await msg.wait(1);
       return msg;
     } catch (err) {
       console.error(err);
@@ -142,7 +143,8 @@ export const LRProvider = ({ children }) => {
     else if (gender?.female) genderText = "Female";
 
     const LandRegistry = await getContract();
-    await LandRegistry.registerUserInRegistry(name, cof, resAddr, genderText);
+    const txn = await LandRegistry.registerUserInRegistry(name, cof, resAddr, genderText);
+    await txn.wait(1);
     router.push("/dashboard");
   };
 
@@ -153,6 +155,7 @@ export const LRProvider = ({ children }) => {
     try {
       const LandRegistry = await getContract();
       const msg = await LandRegistry.addExecutor(name, addr);
+      await msg.wait(1);
       return msg;
     } catch (err) {
       return null;
@@ -194,6 +197,7 @@ export const LRProvider = ({ children }) => {
     try {
       const LandRegistry = await getContract();
       const msg = await LandRegistry.registerLand(_uri, builder, _price);
+      await msg.wait(1);
       return msg;
     } catch (err) {
       console.error(err);
@@ -228,6 +232,7 @@ export const LRProvider = ({ children }) => {
         _salePrice,
         { value: fee }
       );
+      await msg.wait(1);
       return msg;
     } catch (err) {
       console.error(err);
