@@ -1,4 +1,3 @@
-import { useWeb3 } from "@3rdweb/hooks";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
@@ -17,9 +16,9 @@ function OwnerPage() {
     getLastSale,
     getContractBalance,
     withdrawBalance,
+    address
   } = useContext(LRContext);
   const router = useRouter();
-  const { address } = useWeb3();
   const [contractBalance, setContractBalance] = useState("");
   const [loading, setLoading] = useState(false);
   const [maticData, setMaticData] = useState({});

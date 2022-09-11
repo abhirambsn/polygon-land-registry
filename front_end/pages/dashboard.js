@@ -1,4 +1,4 @@
-import { useWeb3 } from "@3rdweb/hooks";
+
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 import CurrencyFormat from "../components/CurrencyFormat";
@@ -6,10 +6,8 @@ import SidebarComponent from "../components/SidebarComponent";
 import { LRContext } from "../context/LRContext";
 
 function DashboardPage() {
-  const { userData, getUserDetail, getOwnedLands, getLandValue } =
+  const { userData, address, getUserDetail, getOwnedLands, getLandValue } =
     useContext(LRContext);
-
-  const { address } = useWeb3();
 
   const [loading, setLoading] = useState(false);
   const [landsOwned, setLandsOwned] = useState(0);

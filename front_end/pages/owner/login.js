@@ -1,31 +1,30 @@
-import { useWeb3 } from "@3rdweb/hooks";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect } from "react";
 import { LRContext } from "../../context/LRContext";
 
 function OwnerLoginPage() {
-  const { ownerLogin, isOwner } = useContext(LRContext);
-  const { address, error } = useWeb3();
+  const { ownerLogin, isOwner, address } = useContext(LRContext);
+  
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (address) {
-      (async () => {
-        if (typeof window === "undefined") return;
-        if (await isOwner()) {
-          router.push("/owner/");
-        } else {
-          alert('Unauthorized');
-          router.replace('/');
-          return;
-        }
-      })();
-    }
-    if (error) {
-      alert(error);
-    }
-  }, [address, error]);
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
+  //   if (address) {
+  //     (async () => {
+  //       if (typeof window === "undefined") return;
+  //       if (await isOwner()) {
+  //         router.push("/owner/");
+  //       } else {
+  //         alert('Unauthorized');
+  //         router.replace('/');
+  //         return;
+  //       }
+  //     })();
+  //   }
+  //   if (error) {
+  //     alert(error);
+  //   }
+  // }, [address, error]);
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#11998e] to-[#38ef7d]">

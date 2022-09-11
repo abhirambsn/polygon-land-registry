@@ -1,4 +1,3 @@
-import { useWeb3 } from "@3rdweb/hooks";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 import { LRContext } from "../../context/LRContext";
@@ -18,8 +17,7 @@ import UserDetails from "../../components/UserDetails";
 
 function ExecutorDashboard() {
   const router = useRouter();
-  const { address } = useWeb3();
-  const { getExecutorDetail, checkExecutor, getLastSale, noUsers, userData } =
+  const { address, getExecutorDetail, checkExecutor, getLastSale, noUsers, userData } =
     useContext(LRContext);
   const [value, setValue] = useState(0);
   const [maticData, setMaticData] = useState({});

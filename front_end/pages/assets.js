@@ -5,14 +5,11 @@ import { LRContext } from "../context/LRContext";
 import { ethers } from "ethers";
 import Link from "next/link";
 import { CONTRACT_ADDRESS } from "../lib/constants";
-import { useWeb3 } from "@3rdweb/hooks";
 import { saleTypeMap } from "../lib/constants";
 
 function OwnedAssetsPage() {
-  const { userData, account, getOwnedLands, getLandDataFromId } =
+  const { userData, account, address, getOwnedLands, getLandDataFromId } =
     useContext(LRContext);
-  const { address } = useWeb3();
-
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();

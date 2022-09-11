@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { LogoutIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
-import { useWeb3 } from "@3rdweb/hooks";
 import {formatAddress} from '../lib/constants';
+import { useContext } from "react";
+import { LRContext } from "../context/LRContext";
 
 const SidebarComponent = ({ data }) => {
   const [full, setFull] = useState(false);
-  const { address, disconnectWallet } = useWeb3();
+  const { address, logout } = useContext(LRContext);
   const router = useRouter();
 
   return (
@@ -91,7 +92,7 @@ const SidebarComponent = ({ data }) => {
             <a
               className="flex items-center px-4 py-2 mt-5 text-red-600 transition-colors duration-200 transform dark:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-red-200 hover:text-red-700"
               href="#"
-              onClick={disconnectWallet}
+              onClick={logout}
             >
               <LogoutIcon className="h-6 w-6" />
               <span className="mx-4 font-medium">Logout</span>

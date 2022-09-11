@@ -1,31 +1,26 @@
-import { useWeb3 } from "@3rdweb/hooks";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect } from "react";
 import { LRContext } from "../../context/LRContext";
 
 function ExecutorLoginPage() {
-  const { executorLogin, checkExecutor } = useContext(LRContext);
-  const { address, error } = useWeb3();
+  const { checkExecutor, executorLogin } = useContext(LRContext);
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (address) {
-      (async () => {
-        if (typeof window === "undefined") return;
-        if (await checkExecutor()) {
-          router.push("/executor/");
-        } else {
-          alert("Unauthorized");
-          router.replace("/");
-          return;
-        }
-      })();
-    }
-    if (error) {
-      alert(error);
-    }
-  }, [address, error]);
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
+  //   if (address) {
+  //     (async () => {
+  //       if (typeof window === "undefined") return;
+  //       if (await checkExecutor()) {
+  //         router.push("/executor/");
+  //       } else {
+  //         alert("Unauthorized");
+  //         router.replace("/");
+  //         return;
+  //       }
+  //     })();
+  //   }
+  // }, [address]);
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-500 to-orange-400">
