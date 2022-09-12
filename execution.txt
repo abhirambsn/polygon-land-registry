@@ -1,8 +1,8 @@
 4 A/c
-1. Owner
-2. executor
-3. buyer
-4. seller
+1. Owner - Government 
+2. executor - Government employees
+3. buyer - User
+4. seller - User
 
 1. Owner -> Deploy
 2. Owner -> executor Assign (pass executor address and name)
