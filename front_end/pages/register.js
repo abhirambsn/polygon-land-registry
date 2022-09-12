@@ -1,12 +1,10 @@
-import { useWeb3 } from "@3rdweb/hooks";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 import { LRContext } from "../context/LRContext";
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../lib/constants";
 
 function RegisterPage() {
-  const { userData, getUserDetail, registerUser } = useContext(LRContext);
-  const {address} = useWeb3();
+  const { address, userData, getUserDetail, registerUser } = useContext(LRContext);
 
   const router = useRouter();
   const [name, setName] = useState("");
