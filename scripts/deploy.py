@@ -98,7 +98,7 @@ def deploy_contract():
                                     gender="Female", userAddress=sellerAddress, land_registry=land_registry)
         print("Success")
     if land_registry:
-        land_registry = register_land(uri="http://ipfs.io/ipfs/bafkreig6jteg6dlutusov44fdvl3loythdw557fvahy5t5dvyyva3pxbea", sellerAddress=sellerAddress,
+        land_registry = register_land(uri="https://ipfs.io/ipfs/bafkreig6jteg6dlutusov44fdvl3loythdw557fvahy5t5dvyyva3pxbea", sellerAddress=sellerAddress,
                                       price=10, land_registry=land_registry, executorAddress=executorAddress)
         print(f"Success {land_registry}")
     if land_registry:
