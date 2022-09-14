@@ -21,5 +21,5 @@ export const customModalStyles = {
 export const formatAddress = (addr) =>
   addr ? addr.slice(0, 5) + "..." + addr.slice(-5) : null;
 
-export const CONTRACT_ADDRESS = "0xc0F1b92Aa7Bcc79164F13eBf5DD36B65bd598efe";
+export const CONTRACT_ADDRESS = "0x838C1ee654c09eA56adcD4812D88DB488109fe63";
 export const CONTRACT_ABI = landRegistryAbi.abi;
